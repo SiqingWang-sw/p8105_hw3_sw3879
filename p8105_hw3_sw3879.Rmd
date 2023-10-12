@@ -5,3 +5,32 @@ date: "2023-10-12"
 output: github_document
 ---
 
+Setting up libraries
+```{r setup, message = FALSE}
+library(tidyverse)
+library(ggridges)
+library(patchwork)
+```
+
+## Problem 1
+
+### Loadiing the dataset for Q1
+```{r}
+library(p8105.datasets)
+data("instacart")
+
+instacart = instacart |> as.tibble() |> janitor::clean_names()
+```
+
+### Describing the dataset 
+The `instacart` dataset as `r nrow(instacart)` rows and `r ncol(instacart)` columns. Important variables include unique identifier of customer, order date, days since previous order, and specific information about the product purchased. There are a total of `r instacart |> select(order_id) |> n_distinct()` orders recorded, and `r instacart |> select(product_id) |> n_distinct()` recorded. These products range from `r instacart |> select(department_id) |> n_distinct()` different departments. 
+
+### Answering questions 
+```{r}
+instacart |> count(aisle) |> arrange(desc(n))
+```
+
+There are `r instacart |> select(aisle_id) |> n_distinct()` aisles, and the most ordered items are from fresh vegetables and fresh fruits. 
+
+
+
