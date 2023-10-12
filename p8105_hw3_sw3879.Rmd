@@ -32,5 +32,30 @@ instacart |> count(aisle) |> arrange(desc(n))
 
 There are `r instacart |> select(aisle_id) |> n_distinct()` aisles, and the most ordered items are from fresh vegetables and fresh fruits. 
 
+Making a plot: 
+```{r}
+instacart |> count(aisle) |> filter(n > 10000) |> 
+  ggplot(aes(x = reorder(aisle, -n), y = n)) + geom_point() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Number of product ordered by aisle",
+       x = "Aisle Name", y = "Number of product ordered") 
+```
+
+Making a table of top 3 ordered items from "baking ingredients", "dog food care", "packaged vegetables fruits":
+```{r}
+instacart |> filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) |> 
+  group_by(aisle) |> count(product_name) |> 
+  arrange(desc(n)) |> top_n(n = 3, wt = n) |> 
+  rename(times_ordered = n) |> 
+  knitr::kable()
+```
+
+Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week: 
+```{r}
+instacart |>
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) |>
+  group_by(product_name, order_dow)
+```
+
 
 
