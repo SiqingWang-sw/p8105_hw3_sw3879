@@ -54,8 +54,34 @@ Make a table showing the mean hour of the day at which Pink Lady Apples and Coff
 ```{r}
 instacart |>
   filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) |>
-  group_by(product_name, order_dow)
+  group_by(product_name, order_dow) |>
+  summarize(mean_hour = mean(order_hour_of_day)) |>
+  pivot_wider(
+    names_from = order_dow, 
+    values_from = mean_hour) |>
+  knitr::kable(digits = 2)
 ```
+
+## Problem 2
+
+Load the dataset
+```{r}
+data("brfss_smart2010")
+```
+
+Clean data, rename variables, remove unnecessary observations, and reorder data
+```{r}
+brfss_clean = brfss_smart2010 |> as.tibble() |> 
+  janitor::clean_names() |> 
+  rename(location_abbr = locationabbr) |> 
+  rename(location_desc = locationdesc) |> 
+  filter(topic == "Overall Health") |> 
+  mutate(response = factor(response, levels = c("Poor", "Fair", "Good", 
+                                                "Very good", "Excellent"), 
+                           ordered = TRUE)) |> 
+  arrange(response)
+```
+
 
 
 
