@@ -190,6 +190,39 @@ demo |> group_by(education) |> count(sex) |>
   knitr::kable()
 ```
 
+TO DO: comment on the table 
+
+Using your tidied dataset, aggregate across minutes to create a total activity variable for each participant. Plot these total activities (y-axis) against age (x-axis); your plot should compare men to women and have separate panels for each education level. Include a trend line or a smooth to illustrate differences.
+```{r}
+merged_df |> group_by(seqn) |> 
+  summarize(aggre_data = sum(as.numeric(accel_data))) |> 
+  left_join(demo) |> 
+  ggplot(aes(x = age, y = aggre_data, color = sex)) + 
+  geom_point() + geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Total activity by age",
+       x = "Age",
+       y = "Total activity",
+       color = "Sex") +
+  facet_wrap(. ~ education)
+```
+
+TO DO: add comment 
+
+Make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex. 
+```{r}
+merged_df |> 
+  mutate(time_hour = floor(as.numeric(time_min)/60)) |> 
+  group_by(time_hour) |> 
+  summarize(data_per_hour = sum(accel_data)) |> 
+  cross_join(demo) |> 
+  ggplot(aes(x = time_hour, y = data_per_hour, color = sex)) +
+  geom_point() + geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Total activity by hours in a day",
+       x = "Time in Hour",
+       y = "Total activity per hour",
+       color = "Sex") +
+  facet_wrap(. ~ education)
+```
 
 
 
