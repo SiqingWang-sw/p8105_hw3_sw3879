@@ -179,6 +179,16 @@ Merge demo and accel data
 merged_df = left_join(demo, accel, by = "seqn")
 ```
 
+Produce a reader-friendly table for the number of men and women in each education category, and create a visualization of the age distributions for men and women in each education category.
+```{r}
+demo |> group_by(education) |> count(sex) |> 
+  pivot_wider(
+    names_from = sex,
+    values_from = n
+  ) |> 
+  rename(female_number = Female, male_number = Male) |> 
+  knitr::kable()
+```
 
 
 
