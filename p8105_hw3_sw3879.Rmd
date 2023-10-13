@@ -142,6 +142,44 @@ brfss_ny |> ggplot(aes(x = response, y = data_value)) +
 
 TO DO: describe data 
 
+## Problem 3
+
+Load the demographics dataset, recode variable and remove <21 years old
+```{r}
+demo = read_csv("data/nhanes_covar.csv", skip = 4) |> 
+  janitor::clean_names() |> 
+  filter(age > 21) |> 
+  mutate(sex = case_match(
+    sex, 1 ~ "Male", 2 ~ "Female"
+  ),
+  sex = as.factor(sex)) |> 
+  mutate(education = case_match(
+    education, 
+    1 ~ "Less than high school", 
+    2 ~ "High school equivalent", 
+    3 ~ "More than high school"
+  ),
+  education = as.factor(education))
+```
+
+Load the accelerometer dataset, pivot to long format
+```{r}
+accel = read_csv("data/nhanes_accel.csv") |> 
+  janitor::clean_names() |> 
+  pivot_longer(
+    min1 : min1440,
+    names_to = "time_min", 
+    names_prefix = "min",
+    values_to = "accel_data"
+  )
+```
+
+Merge demo and accel data
+```{r}
+merged_df = left_join(demo, accel, by = "seqn")
+```
+
+
 
 
 
