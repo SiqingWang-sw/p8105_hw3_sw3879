@@ -179,7 +179,8 @@ accel = read_csv("data/nhanes_accel.csv") |>
 
 Merge demo and accel data
 ```{r}
-merged_df = left_join(demo, accel, by = "seqn")
+merged_df = left_join(demo, accel, by = "seqn") |> 
+  mutate(time_min = as.numeric(time_min))
 ```
 
 Produce a reader-friendly table for the number of men and women in each education category, and create a visualization of the age distributions for men and women in each education category.
@@ -226,7 +227,7 @@ merged_df |>
   group_by(time_min, education, sex) |> 
   summarize(data_per_min = mean(as.numeric(accel_data))) |> 
   ggplot(aes(x = time_min, y = data_per_min, color = sex)) +
-  geom_point() + geom_smooth(se = FALSE) +
+  geom_point() + geom_smooth() +
   labs(title = "Total activity by hours in a day",
        x = "Time in min",
        y = "Total activity per min",
