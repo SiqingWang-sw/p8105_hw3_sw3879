@@ -25,7 +25,7 @@ instacart = instacart |> as.tibble() |> janitor::clean_names()
 ```
 
 ### Describing the dataset 
-The `instacart` dataset as `r nrow(instacart)` rows and `r ncol(instacart)` columns. Important variables include unique identifier of customer, order date, days since previous order, and specific information about the product purchased. There are a total of `r instacart |> select(order_id) |> n_distinct()` orders recorded, and `r instacart |> select(product_id) |> n_distinct()` recorded. These products range from `r instacart |> select(department_id) |> n_distinct()` different departments. 
+The `instacart` dataset as `r nrow(instacart)` rows and `r ncol(instacart)` columns. Important variables include unique identifier of customer, order time, days since previous order, and specific information about the product purchased. There are a total of `r instacart |> select(order_id) |> n_distinct()` orders recorded, and `r instacart |> select(product_id) |> n_distinct()` recorded. These products range from `r instacart |> select(department_id) |> n_distinct()` different departments. 
 
 ### Answering questions 
 ```{r}
@@ -71,7 +71,7 @@ Load the dataset
 data("brfss_smart2010")
 ```
 
-Clean data, rename variables, remove unnecessary observations, and reorder data
+Clean data, rename variables, remove unnecessary observations, and reorder data. Reording is done by making response as a factor then use it to sort the observations. 
 ```{r}
 brfss_clean = brfss_smart2010 |> as.tibble() |> 
   janitor::clean_names() |> 
@@ -103,7 +103,7 @@ In 2002, `r nrow(result_2002)` states were observed at 7 or more locations, they
 
 In 2010, `r nrow(result_2010)` states were observed at 7 or more locations, they are `r pull(result_2010, location_abbr)`
 
-Construct a dataset that is limited to Excellent responses, and contains, year, state, and a variable that averages the data_value across locations within a state. Make a “spaghetti” plot of this average value over time within a state
+Construct a dataset that is limited to Excellent responses, and contains, year, state, and a variable that averages the data_value across locations within a state. Make a “spaghetti” plot of this average value over time within a state. This is done by first filtering for the excellent response, selecting out the necessary variables, then calcualte the average of data value grouped by year and date. 
 ```{r}
 brfss_excellent = brfss_clean |> 
   filter(response == "Excellent") |> 
@@ -122,7 +122,7 @@ brfss_excellent |>
        color = "State")
 ```
 
-TO DO: comment on result
+This plot shows BRFSS data for all states from 2002 to 2010. The mean BRFSS in 2002 is `r brfss_excellent |> filter(year == "2002") |> mean(data_value, na.rm = TRUE)`, and in 2010 is `r brfss_excellent |> filter(year == "2010") |> mean(as.numeric(data_value), na.rm = TRUE)`. 
 
 Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State.
 ```{r}
@@ -132,11 +132,11 @@ brfss_ny = brfss_clean |>
   select(c("year", "location_abbr", "location_desc","response", "data_value"))
 ```
 ```{r}
-brfss_ny |> ggplot(aes(x = response, y = data_value)) +
-  geom_boxplot() +
+brfss_ny |> ggplot(aes(x = location_desc, y = data_value, fill = response)) +
+  geom_bar(stat = "identity", position = "dodge") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   labs(title = "Distribution of BRFSS data by response in NY",
-       x = "Response", y = "BRFSS data") +
+       x = "County", y = "BRFSS data", fill = "Response") +
   facet_grid(. ~ year)
 ```
 
@@ -227,7 +227,7 @@ merged_df |>
   group_by(time_min, education, sex) |> 
   summarize(data_per_min = mean(as.numeric(accel_data))) |> 
   ggplot(aes(x = time_min, y = data_per_min, color = sex)) +
-  geom_point() + geom_smooth() +
+  geom_point(alpha = 0.05) + geom_smooth(se = FALSE) +
   labs(title = "Total activity by hours in a day",
        x = "Time in min",
        y = "Total activity per min",
