@@ -148,10 +148,9 @@ Load the demographics dataset, recode variable and remove <21 years old
 ```{r}
 demo = read_csv("data/nhanes_covar.csv", skip = 4) |> 
   janitor::clean_names() |> 
-  filter(age > 21) |> 
+  filter(age >= 21) |> 
   mutate(sex = case_match(
-    sex, 1 ~ "Male", 2 ~ "Female"
-  ),
+    sex, 1 ~ "Male", 2 ~ "Female"),
   sex = as.factor(sex)) |> 
   mutate(education = case_match(
     education, 
@@ -159,7 +158,11 @@ demo = read_csv("data/nhanes_covar.csv", skip = 4) |>
     2 ~ "High school equivalent", 
     3 ~ "More than high school"
   ),
-  education = as.factor(education))
+  education = factor(education,
+                     levels = c("Less than high school", 
+                                "High school equivalent",
+                                "More than high school"))) |> 
+  na.omit()
 ```
 
 Load the accelerometer dataset, pivot to long format
@@ -189,6 +192,15 @@ demo |> group_by(education) |> count(sex) |>
   rename(female_number = Female, male_number = Male) |> 
   knitr::kable()
 ```
+```{r}
+demo |> group_by(education, sex, age) |> 
+  ggplot(aes(x = education, y = age, color = sex)) + geom_boxplot() + 
+  labs(title = "Demographics by sex and education",
+       x = "Education",
+       y = "Age",
+       color = "Sex")
+```
+
 
 TO DO: comment on the table 
 
@@ -196,9 +208,9 @@ Using your tidied dataset, aggregate across minutes to create a total activity v
 ```{r}
 merged_df |> group_by(seqn) |> 
   summarize(aggre_data = sum(as.numeric(accel_data))) |> 
-  left_join(demo) |> 
+  right_join(demo) |> 
   ggplot(aes(x = age, y = aggre_data, color = sex)) + 
-  geom_point() + geom_smooth(method = "lm", se = FALSE) +
+  geom_point() + geom_smooth(se = FALSE) +
   labs(title = "Total activity by age",
        x = "Age",
        y = "Total activity",
@@ -211,15 +223,13 @@ TO DO: add comment
 Make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex. 
 ```{r}
 merged_df |> 
-  mutate(time_hour = floor(as.numeric(time_min)/60)) |> 
-  group_by(time_hour) |> 
-  summarize(data_per_hour = sum(accel_data)) |> 
-  cross_join(demo) |> 
-  ggplot(aes(x = time_hour, y = data_per_hour, color = sex)) +
-  geom_point() + geom_smooth(method = "lm", se = FALSE) +
+  group_by(time_min, education, sex) |> 
+  summarize(data_per_min = mean(as.numeric(accel_data))) |> 
+  ggplot(aes(x = time_min, y = data_per_min, color = sex)) +
+  geom_point() + geom_smooth(se = FALSE) +
   labs(title = "Total activity by hours in a day",
-       x = "Time in Hour",
-       y = "Total activity per hour",
+       x = "Time in min",
+       y = "Total activity per min",
        color = "Sex") +
   facet_wrap(. ~ education)
 ```
