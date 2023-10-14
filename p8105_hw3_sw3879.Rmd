@@ -43,6 +43,8 @@ instacart |> count(aisle) |> filter(n > 10000) |>
        x = "Aisle Name", y = "Number of product ordered") 
 ```
 
+From this plot, we can see that the 2 most populat aisles are fresh vetetables and fresh fruits, and these two have significantly more items ordered than the rest of the aisles. 
+
 Making a table of top 3 ordered items from "baking ingredients", "dog food care", "packaged vegetables fruits":
 ```{r}
 instacart |> filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) |> 
@@ -51,6 +53,7 @@ instacart |> filter(aisle %in% c("baking ingredients", "dog food care", "package
   rename(times_ordered = n) |> 
   knitr::kable()
 ```
+From the table, we can see that among the three aisles, a lot more items ordered are from the packaged vegetable and fruit aisle, and the least items ordered are from the dog food care aisle. 
 
 Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week: 
 ```{r}
@@ -63,6 +66,8 @@ instacart |>
     values_from = mean_hour) |>
   knitr::kable(digits = 2)
 ```
+
+From the table we can see that on most days, coffee ice cream and pink lady apples have relative similar sales, but on some days there are more sales on coffee ice cream than on pink lady apples.
 
 ## Problem 2
 
@@ -83,6 +88,8 @@ brfss_clean = brfss_smart2010 |> as.tibble() |>
                            ordered = TRUE)) |> 
   arrange(response)
 ```
+
+The resulted clean `brfss` dataset has `r nrow(brfss_clean)` rows and `r ncol(brfss_clean)` columns. 
 
 In 2002, which states were observed at 7 or more locations? What about in 2010?
 ```{r}
@@ -131,16 +138,17 @@ brfss_ny = brfss_clean |>
   filter(location_abbr == "NY") |> 
   select(c("year", "location_abbr", "location_desc","response", "data_value"))
 ```
+
+Making a boxplot to show distribution of response in NY in 2006 and 2010:
 ```{r}
-brfss_ny |> ggplot(aes(x = location_desc, y = data_value, fill = response)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+brfss_ny |> ggplot(aes(x = response, y = data_value)) +
+  geom_boxplot() +
   labs(title = "Distribution of BRFSS data by response in NY",
-       x = "County", y = "BRFSS data", fill = "Response") +
+       x = "Response", y = "BRFSS data") +
   facet_grid(. ~ year)
 ```
+In both 2006 and 2010, we can see that the median data for the `very good` response is the highest, which is `r brfss_ny |> filter(year == "2006", response == "Very good") |> pull(data_value) |> as.numeric() |> median()` in 2006 and `r brfss_ny |> filter(year == "2010", response == "Very good") |> pull(data_value) |> as.numeric() |> median()` in 2010. We can also see an increase in the median data value for the `very good` response from 2006 to 2010, while the median data for other responses stayed similar from 2006 to 2010. 
 
-From the clustered bar plot, we can see that there are missing data in 2006 for a few counties but data is complete for 2010. In most states, the majority of the response is "very good", with Bronx, Kings, and Queens county as exceptions. Comparing between 2006 and 2010, there is generally an increase in data value in the "very good" response.
 
 ## Problem 3
 
