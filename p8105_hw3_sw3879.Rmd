@@ -129,9 +129,15 @@ brfss_excellent |>
        color = "State")
 ```
 
-This plot shows BRFSS data for all states from 2002 to 2010. The mean BRFSS in 2002 is `r brfss_excellent |> filter(year == "2002") |> pull(data_value) |> mean(na.rm = TRUE) |> round(digits = 2)`, and in 2010 is `r brfss_excellent |> filter(year == "2010") |> pull(data_value) |> mean(na.rm = TRUE) |> round(digits = 2)`. The state with the lowest average BRFSS data between 2002 and 2010 is `r brfss_excellent |> group_by(state) |> summarize(n = mean(data_value, na.rm = TRUE)) |> arrange(n) |> slice(1) |> select(2) |> round(digits = 2)` from the state `r brfss_excellent |> group_by(state) |> summarize(n = mean(data_value, na.rm = TRUE)) |> arrange(n) |> slice(1) |> select(1)`. The state with the highest average BRFSS data between 2002 and 2010 is `r brfss_excellent |> group_by(state) |> summarize(n = mean(data_value, na.rm = TRUE)) |> arrange(desc(n)) |> slice(1) |> select(2) |> round(digits = 2)` from the state `r brfss_excellent |> group_by(state) |> summarize(n = mean(data_value, na.rm = TRUE)) |> arrange(desc(n)) |> slice(1) |> select(1)`.
+The `brfss_excellent` dataset has `r nrow(brfss_excellent)` rows and `r ncol(brfss_excellent)` columns. 
 
-Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State. This is done by filtering out rows for 2006 and 2000 and the NY states, then visualize data value by county and response.  
+
+This spaghetti plot shows BRFSS data for all states from 2002 to 2010. The mean BRFSS in 2002 is `r brfss_excellent |> filter(year == "2002") |> pull(data_value) |> mean(na.rm = TRUE) |> round(digits = 2)`, and in 2010 is `r brfss_excellent |> filter(year == "2010") |> pull(data_value) |> mean(na.rm = TRUE) |> round(digits = 2)`, so there is a slight decrease overall. 
+
+The state with the lowest average BRFSS data between 2002 and 2010 is `r brfss_excellent |> group_by(state) |> summarize(n = mean(data_value, na.rm = TRUE)) |> arrange(n) |> slice(1) |> select(2) |> round(digits = 2)` from the state `r brfss_excellent |> group_by(state) |> summarize(n = mean(data_value, na.rm = TRUE)) |> arrange(n) |> slice(1) |> select(1)`. The state with the highest average BRFSS data between 2002 and 2010 is `r brfss_excellent |> group_by(state) |> summarize(n = mean(data_value, na.rm = TRUE)) |> arrange(desc(n)) |> slice(1) |> select(2) |> round(digits = 2)` from the state `r brfss_excellent |> group_by(state) |> summarize(n = mean(data_value, na.rm = TRUE)) |> arrange(desc(n)) |> slice(1) |> select(1)`.
+
+
+Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State. This is done by filtering out rows for 2006 and 2000 and the NY states, then visualize data value with a boxplot to show distribution in different responses.  
 ```{r}
 brfss_ny = brfss_clean |> 
   filter(year %in% c("2006", "2010")) |> 
@@ -147,6 +153,7 @@ brfss_ny |> ggplot(aes(x = response, y = data_value)) +
        x = "Response", y = "BRFSS data") +
   facet_grid(. ~ year)
 ```
+
 In both 2006 and 2010, we can see that the median data for the `very good` response is the highest, which is `r brfss_ny |> filter(year == "2006", response == "Very good") |> pull(data_value) |> as.numeric() |> median()` in 2006 and `r brfss_ny |> filter(year == "2010", response == "Very good") |> pull(data_value) |> as.numeric() |> median()` in 2010. We can also see an increase in the median data value for the `very good` response from 2006 to 2010, while the median data for other responses stayed similar from 2006 to 2010. 
 
 
@@ -173,7 +180,7 @@ demo = read_csv("data/nhanes_covar.csv", skip = 4) |>
   na.omit()
 ```
 
-The demographics dataset has `r nrow(demo)` observations after clearning, and `r ncol(demo)` variables. `r 250 - nrow(demo)` observations were removed. Variables in this dataset includes `r colnames(demo) |> print()`. 
+The demographics dataset has `r nrow(demo)` observations after cleaning, and `r ncol(demo)` variables. `r 250 - nrow(demo)` observations were removed. Variables in this dataset includes `r colnames(demo) |> print()`. 
 
 Load the accelerometer dataset, pivot to long format
 ```{r}
@@ -183,7 +190,7 @@ accel = read_csv("data/nhanes_accel.csv") |>
     min1 : min1440,
     names_to = "time_min", 
     names_prefix = "min",
-    values_to = "accel_data"
+    values_to = "mims_data"
   )
 ```
 
@@ -219,13 +226,13 @@ From the table, we can see that the number of female and male with education "le
 Using your tidied dataset, aggregate across minutes to create a total activity variable for each participant. Plot these total activities (y-axis) against age (x-axis); your plot should compare men to women and have separate panels for each education level. Include a trend line or a smooth to illustrate differences.
 ```{r}
 merged_df |> group_by(seqn) |> 
-  summarize(aggre_data = sum(as.numeric(accel_data))) |> 
+  summarize(aggre_data = sum(as.numeric(mims_data))) |> 
   right_join(demo) |> 
   ggplot(aes(x = age, y = aggre_data, color = sex)) + 
   geom_point() + geom_smooth(se = FALSE) +
-  labs(title = "Total activity by age",
+  labs(title = "Total MIMS activity by age and education",
        x = "Age",
-       y = "Total activity",
+       y = "Total MIMS activity",
        color = "Sex") +
   facet_wrap(. ~ education)
 ```
@@ -236,16 +243,16 @@ Make a three-panel plot that shows the 24-hour activity time courses for each ed
 ```{r}
 merged_df |> 
   group_by(time_min, education, sex) |> 
-  summarize(data_per_min = mean(as.numeric(accel_data))) |> 
+  summarize(data_per_min = mean(as.numeric(mims_data))) |> 
   ggplot(aes(x = time_min, y = data_per_min, color = sex)) +
   geom_point(alpha = 0.05) + geom_smooth(se = FALSE) +
-  labs(title = "Total activity by minutes in a day",
+  labs(title = "Total MIMS activity by minutes in a day",
        x = "Time in min within a day",
-       y = "Total activity per min",
+       y = "Total MIMS activity per min",
        color = "Sex") +
   facet_wrap(. ~ education)
 ```
 
-Looking at the three panes, we observe similar trends of activity at different time points within a day, with lowest activity in midnight, and highest during middle of the day. The lowest point is at around 0-3, and the highest point is at around 12-15, Similarly, in high school equivalent and more than high school education group, female generally has higher activity level than men, especially at the peak level. 
+Looking at the three panes, we observe similar trends of activity at different time points within a day, with lowest activity in midnight, and highest during middle of the day. The lowest MIMS activity point is at around 0-3, and the highest point is at around 12-15, Similarly, in high school equivalent and more than high school education group, female generally has higher activity level than men, especially at the peak level. 
 
 
